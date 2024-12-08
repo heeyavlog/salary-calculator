@@ -21,7 +21,8 @@ st.markdown("""
         background-color: #1f77b4;
     }
     .big-font {
-        font-size: 24px !important;
+        font-size: 30px !important;  /* 글꼴 크기 키우기 */
+        font-weight: bold;  /* 굵게 표시 */
     }
     .result-card {
         padding: 20px;
@@ -35,8 +36,8 @@ st.markdown("""
 
 
 def format_number(number):
-    """숫자에 콤마를 추가하는 함수"""
-    return f"{number:,}"
+    """숫자에 콤마를 추가하고 만원 단위로 변환하는 함수 (소수점 버림)"""
+    return f"{int(number // 10000):,}만원"  # 만원 단위 변환, 소수점 버림
 
 
 def calculate_insurance(salary, year):
@@ -51,16 +52,21 @@ def calculate_insurance(salary, year):
         dict: 4대보험 종류별 금액을 담은 딕셔너리
     """
     if year == "2024년":
-        national_pension = salary * 0.045  # 국민연금 4.5%
-        health_insurance = salary * 0.0709  # 건강보험 7.09%
-        long_term_care_insurance = health_insurance * 0.1281  # 장기요양보험 12.81%
-        employment_insurance = salary * 0.009  # 고용보험 0.9%
+        national_pension_rate = 0.045  # 국민연금 4.5%
+        health_insurance_rate = 0.0709  # 건강보험 7.09%
+        long_term_care_insurance_rate = 0.1281  # 장기요양보험 12.81%
+        employment_insurance_rate = 0.009  # 고용보험 0.9%
     elif year == "2025년":
         # 2025년 기준 보험료율 (예상 값)
-        national_pension = salary * 0.047  # 국민연금 4.7% (예상)
-        health_insurance = salary * 0.073  # 건강보험 7.3% (예상)
-        long_term_care_insurance = health_insurance * 0.13  # 장기요양보험 13% (예상)
-        employment_insurance = salary * 0.008  # 고용보험 0.8% (예상)
+        national_pension_rate = 0.047  # 국민연금 4.7% (예상)
+        health_insurance_rate = 0.073  # 건강보험 7.3% (예상)
+        long_term_care_insurance_rate = 0.13  # 장기요양보험 13% (예상)
+        employment_insurance_rate = 0.008  # 고용보험 0.8% (예상)
+
+    national_pension = salary * national_pension_rate
+    health_insurance = salary * health_insurance_rate
+    long_term_care_insurance = health_insurance * long_term_care_insurance_rate
+    employment_insurance = salary * employment_insurance_rate
 
     return {
         '국민연금': national_pension,
@@ -127,7 +133,9 @@ def calculate_tax(salary, year):
 
 def main():
     st.title('💰 급여 실수령액 계산기')
-    st.markdown('#### 연봉/월급을 입력하시면 4대보험과 세금을 공제한 실수령액을 계산해드립니다.')
+    st.markdown(
+        '#### 연봉/월급을 입력하시면 4대보험과 세금을 공제한 실수령액을 계산해드립니다.'
+    )
 
     # 연도 선택
     year = st.selectbox("계산할 연도를 선택하세요", ["2024년", "2025년"])
@@ -136,36 +144,33 @@ def main():
     col1, col2 = st.columns(2)
 
     with col1:
-        salary_type = st.radio(
-            "급여 유형 선택",
-            ["연봉", "월급"],
-            horizontal=True
-        )
+        salary_type = st.radio("급여 유형 선택", ["연봉", "월급"], horizontal=True)
 
     with col2:
         if salary_type == "연봉":
             salary = st.number_input(
-                "연봉을 입력하세요 (원)",
+                "연봉을 입력하세요 (만원)",  # 만원 단위 입력
                 min_value=0,
-                value=36000000,
-                step=1000000,
+                value=3600,  # 기본값 3600만원
+                step=100,  # 100만원 단위 증감
                 format="%d"
             )
-            monthly_salary = salary / 12
+            monthly_salary = salary * 10000 / 12  # 월급 계산 (원 단위)
         else:
             monthly_salary = st.number_input(
-                "월급을 입력하세요 (원)",
+                "월급을 입력하세요 (만원)",  # 만원 단위 입력
                 min_value=0,
-                value=3000000,
-                step=100000,
+                value=300,  # 기본값 300만원
+                step=10,  # 10만원 단위 증감
                 format="%d"
             )
-            salary = monthly_salary * 12
+            monthly_salary *= 10000  # 월급 계산 (원 단위)
+            salary = monthly_salary * 12  # 연봉 계산 (원 단위)
 
     if st.button('계산하기', use_container_width=True):
         # 공제액 계산
-        insurance = calculate_insurance(monthly_salary, year)  # 연도 인자 추가
-        tax = calculate_tax(monthly_salary, year)  # 연도 인자 추가
+        insurance = calculate_insurance(monthly_salary, year)
+        tax = calculate_tax(monthly_salary, year)
 
         # 총 공제액 및 실수령액 계산
         total_deduction = sum(insurance.values()) + sum(tax.values())
@@ -178,19 +183,18 @@ def main():
             st.markdown('<div class="result-card">', unsafe_allow_html=True)
             st.markdown('### 📊 급여 정보')
             if salary_type == "연봉":
-                st.markdown(f'- **연봉**: {format_number(salary)}원')
+                st.markdown(f'- **연봉**: {format_number(salary)}')
             st.markdown(f'''
-                - **월 급여**: {format_number(monthly_salary)}원
-                - **총 공제액**: {format_number(total_deduction)}원
+                - **월 급여**: {format_number(monthly_salary)}
+                - **총 공제액**: {format_number(total_deduction)}
                 ''')
             st.markdown('</div>', unsafe_allow_html=True)
 
         with col_right:
             st.markdown('<div class="result-card">', unsafe_allow_html=True)
             st.markdown('### 💵 실수령액')
-            st.markdown(
-                f'<p class="big-font">**{format_number(net_salary)}원**</p>',
-                unsafe_allow_html=True)
+            st.markdown(f'<p class="big-font">{format_number(net_salary)}</p>',  # <strong> 태그 제거
+                        unsafe_allow_html=True)  # big-font 스타일로 굵게 표시
             st.markdown(f'(매월 예상 수령액)')
             st.markdown('</div>', unsafe_allow_html=True)
 
@@ -206,17 +210,26 @@ def main():
 
         # 상세 공제 내역
         st.markdown('### 📋 상세 공제 내역')
-        col1, col2 = st.columns(2)
+        col1, col2, col3 = st.columns(3)  # 컬럼 3개로 변경
 
         with col1:
             st.markdown('#### 4대보험')
             for name, value in insurance.items():
-                st.markdown(f'- {name}: {format_number(value)}원')
+                st.markdown(f'- {name}: {format_number(value)}')
 
         with col2:
             st.markdown('#### 세금')
             for name, value in tax.items():
-                st.markdown(f'- {name}: {format_number(value)}원')
+                st.markdown(f'- {name}: {format_number(value)}')
+
+        with col3:  # 계산식 표시
+            st.markdown('#### 계산식')
+            st.markdown(f'- **국민연금**: 월 급여 * {national_pension_rate:.3f}')  # 변수 사용
+            st.markdown(f'- **건강보험**: 월 급여 * {health_insurance_rate:.3f}')  # 변수 사용
+            st.markdown(f'- **장기요양보험**: 건강보험료 * {long_term_care_insurance_rate:.3f}')  # 변수 사용
+            st.markdown(f'- **고용보험**: 월 급여 * {employment_insurance_rate:.3f}')  # 변수 사용
+            st.markdown(f'- **소득세**: (월 급여 - 근로소득공제) * {tax_rate:.2f}')
+            st.markdown('- **지방소득세**: 소득세 * 0.1')
 
         # 주의사항
         st.info('''
@@ -230,6 +243,7 @@ def main():
         st.markdown('---')
         st.markdown('''
             ### 🔍 더 자세한 정보가 필요하신가요?
+
 
             급여 계산과 관련된 더 자세한 정보를 확인해보세요:
 
