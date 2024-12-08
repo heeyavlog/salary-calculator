@@ -35,8 +35,8 @@ st.markdown("""
 
 
 def format_number(number):
-    """숫자에 콤마를 추가하고 만원 단위로 변환하는 함수"""
-    return f"{number / 10000:,.1f}만원"  # 만원 단위 변환
+    """숫자에 콤마를 추가하는 함수"""
+    return f"{number:,}"
 
 
 def calculate_insurance(salary, year):
@@ -127,9 +127,7 @@ def calculate_tax(salary, year):
 
 def main():
     st.title('💰 급여 실수령액 계산기')
-    st.markdown(
-        '#### 연봉/월급을 입력하시면 4대보험과 세금을 공제한 실수령액을 계산해드립니다.'
-    )
+    st.markdown('#### 연봉/월급을 입력하시면 4대보험과 세금을 공제한 실수령액을 계산해드립니다.')
 
     # 연도 선택
     year = st.selectbox("계산할 연도를 선택하세요", ["2024년", "2025년"])
@@ -138,33 +136,36 @@ def main():
     col1, col2 = st.columns(2)
 
     with col1:
-        salary_type = st.radio("급여 유형 선택", ["연봉", "월급"], horizontal=True)
+        salary_type = st.radio(
+            "급여 유형 선택",
+            ["연봉", "월급"],
+            horizontal=True
+        )
 
     with col2:
         if salary_type == "연봉":
             salary = st.number_input(
-                "연봉을 입력하세요 (만원)",  # 만원 단위 입력
+                "연봉을 입력하세요 (원)",
                 min_value=0,
-                value=3600,  # 기본값 3600만원
-                step=100,  # 100만원 단위 증감
+                value=36000000,
+                step=1000000,
                 format="%d"
             )
-            monthly_salary = salary * 10000 / 12  # 월급 계산 (원 단위)
+            monthly_salary = salary / 12
         else:
             monthly_salary = st.number_input(
-                "월급을 입력하세요 (만원)",  # 만원 단위 입력
+                "월급을 입력하세요 (원)",
                 min_value=0,
-                value=300,  # 기본값 300만원
-                step=10,  # 10만원 단위 증감
+                value=3000000,
+                step=100000,
                 format="%d"
             )
-            monthly_salary *= 10000  # 월급 계산 (원 단위)
-            salary = monthly_salary * 12  # 연봉 계산 (원 단위)
+            salary = monthly_salary * 12
 
     if st.button('계산하기', use_container_width=True):
         # 공제액 계산
-        insurance = calculate_insurance(monthly_salary, year)
-        tax = calculate_tax(monthly_salary, year)
+        insurance = calculate_insurance(monthly_salary, year)  # 연도 인자 추가
+        tax = calculate_tax(monthly_salary, year)  # 연도 인자 추가
 
         # 총 공제액 및 실수령액 계산
         total_deduction = sum(insurance.values()) + sum(tax.values())
@@ -177,18 +178,19 @@ def main():
             st.markdown('<div class="result-card">', unsafe_allow_html=True)
             st.markdown('### 📊 급여 정보')
             if salary_type == "연봉":
-                st.markdown(f'- **연봉**: {format_number(salary)}')
+                st.markdown(f'- **연봉**: {format_number(salary)}원')
             st.markdown(f'''
-                - **월 급여**: {format_number(monthly_salary)}
-                - **총 공제액**: {format_number(total_deduction)}
+                - **월 급여**: {format_number(monthly_salary)}원
+                - **총 공제액**: {format_number(total_deduction)}원
                 ''')
             st.markdown('</div>', unsafe_allow_html=True)
 
         with col_right:
             st.markdown('<div class="result-card">', unsafe_allow_html=True)
             st.markdown('### 💵 실수령액')
-            st.markdown(f'<p class="big-font">**{format_number(net_salary)}**</p>',
-                        unsafe_allow_html=True)
+            st.markdown(
+                f'<p class="big-font">**{format_number(net_salary)}원**</p>',
+                unsafe_allow_html=True)
             st.markdown(f'(매월 예상 수령액)')
             st.markdown('</div>', unsafe_allow_html=True)
 
@@ -204,26 +206,17 @@ def main():
 
         # 상세 공제 내역
         st.markdown('### 📋 상세 공제 내역')
-        col1, col2, col3 = st.columns(3)  # 컬럼 3개로 변경
+        col1, col2 = st.columns(2)
 
         with col1:
             st.markdown('#### 4대보험')
             for name, value in insurance.items():
-                st.markdown(f'- {name}: {format_number(value)}')
+                st.markdown(f'- {name}: {format_number(value)}원')
 
         with col2:
             st.markdown('#### 세금')
             for name, value in tax.items():
-                st.markdown(f'- {name}: {format_number(value)}')
-
-        with col3:  # 계산식 표시
-            st.markdown('#### 계산식')
-            st.markdown(f'- **국민연금**: 월 급여 * {0.045 if year == "2024년" else 0.047:.3f}')
-            st.markdown(f'- **건강보험**: 월 급여 * {0.0709 if year == "2024년" else 0.073:.3f}')
-            st.markdown(f'- **장기요양보험**: 건강보험료 * {0.1281 if year == "2024년" else 0.13:.3f}')
-            st.markdown(f'- **고용보험**: 월 급여 * {0.009 if year == "2024년" else 0.008:.3f}')
-            st.markdown(f'- **소득세**: (월 급여 - 근로소득공제) * {tax_rate:.2f}')
-            st.markdown('- **지방소득세**: 소득세 * 0.1')
+                st.markdown(f'- {name}: {format_number(value)}원')
 
         # 주의사항
         st.info('''
@@ -240,17 +233,13 @@ def main():
 
             급여 계산과 관련된 더 자세한 정보를 확인해보세요:
 
-            - ✍️ [급여 실수령액 계산 상세 가이드](https://lzhakko.tistory.com/)
-            - 📚 [4대보험 계산 방법 완벽 가이드](https://lzhakko.tistory.com/)
-            - 💡 [자주 묻는 급여 계산 질문과 답변](https://lzhakko.tistory.com/)
+            - ✍️ [퇴직금 체불 해결 가이드: 근로기준법과 퇴직금 계산기 활용법](https://lzhakko.tistory.com/entry/%ED%87%B4%EC%A7%81%EA%B8%88-%EC%B2%B4%EB%B6%88-%ED%95%B4%EA%B2%B0-%EA%B0%80%EC%9D%B4%EB%93%9C-%EA%B7%BC%EB%A1%9C%EA%B8%B0%EC%A4%80%EB%B2%95%EA%B3%BC-%ED%87%B4%EC%A7%81%EA%B8%88-%EA%B3%84%EC%82%B0%EA%B8%B0-%ED%99%9C%EC%9A%A9%EB%B2%95)
+            - 📚 [주휴수당 계산기: 쉽게 계산하고 무료로 다운로드하세요!](https://lzhakko.tistory.com/entry/%EC%A3%BC%ED%9C%B4%EC%88%98%EB%8B%B9-%EA%B3%84%EC%82%B0%EA%B8%B0-%EC%89%BD%EA%B2%8C-%EA%B3%84%EC%82%B0%ED%95%98%EA%B3%A0-%EB%AC%B4%EB%A3%8C%EB%A1%9C-%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C%ED%95%98%EC%84%B8%EC%9A%94)
+            - 💡 [해촉증명서 작성법부터 양식 다운로드까지, 쉽고 간단하게!](https://lzhakko.tistory.com/entry/%ED%95%B4%EC%B4%89%EC%A6%9D%EB%AA%85%EC%84%9C-%EC%9E%91%EC%84%B1%EB%B2%95%EB%B6%80%ED%84%B0-%EC%96%91%EC%8B%9D-%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C%EA%B9%8C%EC%A7%80-%EC%89%BD%EA%B3%A0-%EA%B0%84%EB%8B%A8%ED%95%98%EA%B2%8C)
 
-            ### 💪 추천 콘텐츠
-            - ✨ 퇴직금 계산기
-            - 📊 연차수당 계산기
-            - 📈 연봉 인상률 계산기
-
-            더 많은 유용한 정보는 [개발하는 나무](https://lzhakko.tistory.com/)에서 확인하세요!
+            더 많은 유용한 정보는 [리즈의 일상백과](https://lzhakko.tistory.com/)에서 확인하세요!
             ''')
+
 
 if __name__ == '__main__':
     main()
