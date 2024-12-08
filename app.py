@@ -33,6 +33,9 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+def format_number(number):
+    return f"{number:,}"
+
 def calculate_insurance(salary):
     # 4대보험 계산 (2024년 기준)
     national_pension = salary * 0.045  # 국민연금 4.5%
@@ -48,9 +51,9 @@ def calculate_insurance(salary):
     }
 
 def calculate_tax(salary):
-    # 간단한 세금 계산 (실제 세금은 더 복잡한 계산식 사용)
-    income_tax = salary * 0.06  # 소득세 약 6% (간단화)
-    local_tax = income_tax * 0.1  # 지방소득세 (소득세의 10%)
+    # 간단한 세금 계산
+    income_tax = salary * 0.06  # 소득세 약 6%
+    local_tax = income_tax * 0.1  # 지방소득세
     
     return {
         '소득세': income_tax,
@@ -107,17 +110,17 @@ def main():
             st.markdown('<div class="result-card">', unsafe_allow_html=True)
             st.markdown('### 📊 급여 정보')
             if salary_type == "연봉":
-                st.markdown(f'- **연봉**: {salary:,}원')
+                st.markdown(f'- **연봉**: {format_number(salary)}원')
             st.markdown(f'''
-            - **월 급여**: {monthly_salary:,}원
-            - **총 공제액**: {total_deduction:,.0f}원
+            - **월 급여**: {format_number(monthly_salary)}원
+            - **총 공제액**: {format_number(total_deduction)}원
             ''')
             st.markdown('</div>', unsafe_allow_html=True)
         
         with col_right:
             st.markdown('<div class="result-card">', unsafe_allow_html=True)
             st.markdown('### 💵 실수령액')
-            st.markdown(f'<p class="big-font">**{net_salary:,.0f}원**</p>', unsafe_allow_html=True)
+            st.markdown(f'<p class="big-font">**{format_number(net_salary)}원**</p>', unsafe_allow_html=True)
             st.markdown(f'(매월 예상 수령액)')
             st.markdown('</div>', unsafe_allow_html=True)
         
@@ -137,12 +140,12 @@ def main():
         with col1:
             st.markdown('#### 4대보험')
             for name, value in insurance.items():
-                st.markdown(f'- {name}: {value:,.0f}원')
+                st.markdown(f'- {name}: {format_number(value)}원')
         
         with col2:
             st.markdown('#### 세금')
             for name, value in tax.items():
-                st.markdown(f'- {name}: {value:,.0f}원')
+                st.markdown(f'- {name}: {format_number(value)}원')
         
         # 주의사항
         st.info('''
