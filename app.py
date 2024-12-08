@@ -72,7 +72,11 @@ def calculate_insurance(salary, year):
         '국민연금': national_pension,
         '건강보험': health_insurance,
         '장기요양보험': long_term_care_insurance,
-        '고용보험': employment_insurance
+        '고용보험': employment_insurance,
+        '국민연금_비율': national_pension_rate,  # 비율 값 추가
+        '건강보험_비율': health_insurance_rate,  # 비율 값 추가
+        '장기요양보험_비율': long_term_care_insurance_rate,  # 비율 값 추가
+        '고용보험_비율': employment_insurance_rate  # 비율 값 추가
     }
 
 
@@ -224,10 +228,10 @@ def main():
 
         with col3:  # 계산식 표시
             st.markdown('#### 계산식')
-            st.markdown(f'- **국민연금**: 월 급여 * {national_pension_rate:.3f}')  # 변수 사용
-            st.markdown(f'- **건강보험**: 월 급여 * {health_insurance_rate:.3f}')  # 변수 사용
-            st.markdown(f'- **장기요양보험**: 건강보험료 * {long_term_care_insurance_rate:.3f}')  # 변수 사용
-            st.markdown(f'- **고용보험**: 월 급여 * {employment_insurance_rate:.3f}')  # 변수 사용
+            st.markdown(f'- **국민연금**: 월 급여 * {insurance["국민연금_비율"]:.3f}')  # 딕셔너리에서 비율 값 가져오기
+            st.markdown(f'- **건강보험**: 월 급여 * {insurance["건강보험_비율"]:.3f}')  # 딕셔너리에서 비율 값 가져오기
+            st.markdown(f'- **장기요양보험**: 건강보험료 * {insurance["장기요양보험_비율"]:.3f}')  # 딕셔너리에서 비율 값 가져오기
+            st.markdown(f'- **고용보험**: 월 급여 * {insurance["고용보험_비율"]:.3f}')  # 딕셔너리에서 비율 값 가져오기
             st.markdown(f'- **소득세**: (월 급여 - 근로소득공제) * {tax_rate:.2f}')
             st.markdown('- **지방소득세**: 소득세 * 0.1')
 
