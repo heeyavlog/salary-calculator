@@ -1,8 +1,5 @@
 import streamlit as st
-import plotly.graph_objects as go
 import plotly.express as px
-import pandas as pd
-import numpy as np
 
 # 페이지 설정
 st.set_page_config(
@@ -137,10 +134,94 @@ def calculate_tax(salary, year):
 
 
 def main():
-    # ... (기존 코드) ...
+    st.title('💰 급여 실수령액 계산기')
+    st.markdown(
+        '#### 연봉/월급을 입력하시면 4대보험과 세금을 공제한 실수령액을 계산해드립니다.'
+    )
+
+    # 연도 선택
+    year = st.selectbox("계산할 연도를 선택하세요", ["2024년", "2025년"])
+
+    # 입력 섹션
+    col1, col2 = st.columns(2)
+
+    with col1:
+        salary_type = st.radio("급여 유형 선택", ["연봉", "월급"], horizontal=True)
+
+    with col2:
+        if salary_type == "연봉":
+            salary = st.number_input(
+                "연봉을 입력하세요 (원)",
+                min_value=0,
+                value=36000000,
+                step=1000000,
+                format="%d"
+            )
+            monthly_salary = salary / 12
+        else:
+            monthly_salary = st.number_input(
+                "월급을 입력하세요 (원)",
+                min_value=0,
+                value=3000000,
+                step=100000,
+                format="%d"
+            )
+            salary = monthly_salary * 12
 
     if st.button('계산하기', use_container_width=True):
-        # ... (기존 코드) ...
+        # 공제액 계산
+        insurance = calculate_insurance(monthly_salary, year)
+        tax = calculate_tax(monthly_salary, year)
+
+        # 총 공제액 및 실수령액 계산
+        total_deduction = sum(insurance.values()) + sum(tax.values())
+        net_salary = monthly_salary - total_deduction
+
+        # 결과 표시
+        col_left, col_right = st.columns(2)
+
+        with col_left:
+            st.markdown('<div class="result-card">', unsafe_allow_html=True)
+            st.markdown('### 📊 급여 정보')
+            if salary_type == "연봉":
+                st.markdown(f'- **연봉**: {format_number(salary)}')
+            st.markdown(f'''
+                - **월 급여**: {format_number(monthly_salary)}
+                - **총 공제액**: {format_number(total_deduction)}
+                ''')
+            st.markdown('</div>', unsafe_allow_html=True)
+
+        with col_right:
+            st.markdown('<div class="result-card">', unsafe_allow_html=True)
+            st.markdown('### 💵 실수령액')
+            st.markdown(f'<p class="big-font">{format_number(net_salary)}</p>',
+                        unsafe_allow_html=True)
+            st.markdown(f'(매월 예상 수령액)')
+            st.markdown('</div>', unsafe_allow_html=True)
+
+        # 공제 내역 도넛 차트
+        deductions = {**insurance, **tax}
+        fig = px.pie(
+            values=list(deductions.values()),
+            names=list(deductions.keys()),
+            title='공제 항목별 비율',
+            hole=0.3  # 도넛 차트 가운데 구멍 크기 조절
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+        # 상세 공제 내역
+        st.markdown('### 📋 상세 공제 내역')
+        col1, col2, col3 = st.columns(3)  # 컬럼 3개로 변경
+
+        with col1:
+            st.markdown('#### 4대보험')
+            for name, value in insurance.items():
+                st.markdown(f'- {name}: {format_number(value)}')
+
+        with col2:
+            st.markdown('#### 세금')
+            for name, value in tax.items():
+                st.markdown(f'- {name}: {format_number(value)}')
 
         with col3:  # 계산식 표시
             st.markdown('#### 계산식')
@@ -150,8 +231,6 @@ def main():
             st.markdown(f'- **고용보험**: 월 급여 * {insurance["고용보험_비율"]:.3f}')
             st.markdown(f'- **소득세**: (월 급여 - 근로소득공제) * {tax["세율"]:.2f}')
             st.markdown('- **지방소득세**: 소득세 * 0.1')
-
-        # ... (기존 코드) ...
 
         # 주의사항
         st.info('''
