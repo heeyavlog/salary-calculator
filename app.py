@@ -33,8 +33,8 @@ st.markdown("""
 
 
 def format_number(number):
-    """숫자에 콤마를 추가하는 함수"""
-    return f"{number:,}원"  # 원 단위 유지
+    """숫자에 콤마를 추가하고 반올림하는 함수"""
+    return f"{round(number):,}원"
 
 
 def calculate_insurance(salary, year):
