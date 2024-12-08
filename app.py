@@ -225,10 +225,10 @@ def main():
 
         with col3:  # 계산식 표시
             st.markdown('#### 계산식')
-            st.markdown(f'- **국민연금**: 월 급여 * {insurance["국민연금_비율"]:.3f}')
-            st.markdown(f'- **건강보험**: 월 급여 * {insurance["건강보험_비율"]:.3f}')
-            st.markdown(f'- **장기요양보험**: 건강보험료 * {insurance["장기요양보험_비율"]:.3f}')
-            st.markdown(f'- **고용보험**: 월 급여 * {insurance["고용보험_비율"]:.3f}')
+            st.markdown(f'- **국민연금**: 월 급여 * {insurance["국민연금_비율"]:.3f}')  # 오타 수정
+            st.markdown(f'- **건강보험**: 월 급여 * {insurance["건강보험_비율"]:.3f}')  # 오타 수정
+            st.markdown(f'- **장기요양보험**: 건강보험료 * {insurance["장기요양보험_비율"]:.3f}')  # 오타 수정
+            st.markdown(f'- **고용보험**: 월 급여 * {insurance["고용보험_비율"]:.3f}')  # 오타 수정
             st.markdown(f'- **소득세**: (월 급여 - 근로소득공제) * {tax["세율"]:.2f}')
             st.markdown('- **지방소득세**: 소득세 * 0.1')
 
